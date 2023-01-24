@@ -1,37 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import SearchBar from "../components/SearchBar";
 import yelp from "../api/yelp";
+import useResults from "../hooks/useResults";
+import ResultList from "../components/ResultList";
+import { ScrollView } from "react-native-gesture-handler";
 const SearchScreen = () => {
   const [term, setTerm] = useState("");
-  const [results, setResults] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const searchApi = async (searchTerm) => {
-    console.log("Hi there");
-    try {
-      const response = await yelp.get("/search", {
-        params: {
-          limit: 50,
-          term: searchTerm,
-          location: "san jose",
-        },
-      });
-      setResults(response.data.businesses);
-    } catch (err) {
-      setErrorMessage("Something went wrong");
-    }
-  };
+  const [searchApi, results, errorMessage] = useResults();
 
+  const filterResultsByPrice = (price) => {
+    //price == '$' || '$$' || ' $$$'
+    return results.filter((result) => {
+      return result.price === price;
+    });
+  };
+  // console.log(results);
   //   searchApi("pasta");
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <SearchBar
         term={term}
         onTermChange={setTerm}
         onTermSubmit={() => searchApi(term)}
       />
       {errorMessage ? <Text>{errorMessage}</Text> : null}
-      <Text>We have found {results.length} results</Text>
+
+      {/* <Text>We have found {results.length} results</Text> */}
+      <ScrollView>
+        <ResultList
+          result={filterResultsByPrice("$")}
+          title="Cost Effective"
+          // navigation={navigation}
+        />
+        <ResultList
+          result={filterResultsByPrice("$$")}
+          title="Bit Pricier"
+          // navigation={navigation}
+        />
+        <ResultList
+          result={filterResultsByPrice("$$$")}
+          title="Big Spender "
+
+          // navigation={navigation}
+        />
+      </ScrollView>
     </View>
   );
 };
